@@ -21,4 +21,30 @@ describe Ti82 do
       end
     end
   end
+
+  describe ".pv" do
+    it 'returns the present value' do
+      fi.pv(0.005,240,-2098.43,1000,0).round(2).should == 292598.38
+    end
+
+    it 'when the fv is 0' do
+      fi.pv(0.005,240,-2098.43,0,0).round(2).should == 292900.48
+    end
+  end
+
+  describe ".npv" do
+    it 'returns 2368.87' do
+      fi.npv(0.05, 100, 1000, 500, 999).round(2).should == 2368.87
+    end
+
+    it ' returns 1461.84' do
+      fi.npv(0.05, 100, 1000, -500, 999).round(2).should == 1461.84
+    end
+  end
+
+  describe ".irr" do
+    it 'returns .0792' do
+      fi.irr(-100000, 10000, 25000, 50000, 40000).round(4).should == 0.0792
+    end
+  end
 end
