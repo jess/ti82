@@ -71,9 +71,45 @@ module Ti82
   # irr
   # irr(cf0, cf1, cf2...)
   def irr(*cash_flows)
+    positives, negatives = cash_flows.partition{ |i| i >= 0 }
+    if positives.empty? || negatives.empty?
+      raise ArgumentError, "Calculation does not converge."
+    end
     func = Function.new(cash_flows, :npv)
     rate = [func.one]
     nlsolve(func, rate)
-    rate[0].to_f
+    rate = rate[0].to_f
+    if rate < 0
+      solve_for_bond_price(*cash_flows)
+    else
+      rate
+    end
+  end
+
+  # Bond price = coupon / y x ( 1 - (1/ (1+y))^N) + face / (1 + y)^N
+  # first value / face value
+  def solve_for_bond_price(*cash_flows)
+    n = cash_flows.size - 1
+    first = cash_flows[0].round(3)
+    coupon = cash_flows[1]
+    fv = cash_flows.last - coupon
+    guess = coupon / fv
+    price = bond_price(coupon, guess, n, fv)
+    until ( price + first ).abs < 0.001 do
+      diff = (price + first).abs
+      per = (diff / first.abs) * 0.1
+      if ( price + first ) > 0
+        guess = guess + per
+      else
+        guess = guess - per
+      end
+      price = bond_price(coupon, guess, n, fv)
+    end
+    guess
+  end
+
+  def bond_price(coupon, guess, n, fv)
+    (coupon / guess) *
+      (1 - (1 / ( 1 + guess ))**n) + fv / (1 + guess)**n
   end
 end
