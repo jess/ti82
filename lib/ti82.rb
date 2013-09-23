@@ -76,14 +76,15 @@ module Ti82
       raise ArgumentError, "Calculation does not converge."
     end
     func = Function.new(cash_flows, :npv)
-    rate = [func.one]
-    nlsolve(func, rate)
-    rate = rate[0].to_f
-    if rate < 0
-      solve_for_bond_price(*cash_flows)
-    else
-      rate
+    rate = 0
+    methods = [:one, :two, :ten, :eps, :zero]
+    methods.each do |method|
+      rate = [func.send(method)]
+      nlsolve(func, rate)
+      rate = rate[0].to_f
+      break if rate > 0
     end
+    rate
   end
 
   # Bond price = coupon / y x ( 1 - (1/ (1+y))^N) + face / (1 + y)^N

@@ -49,11 +49,25 @@ describe Ti82 do
 
     it 'works for many cash flows' do
       fi.irr(-10000, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200).round(4).should == 0.1073
+    end
+    it 'does large cash flows' do
       fi.irr( -100000, 20000, 21000, 21100, 21200, 21300, 21400, 21500, 21600, 21700, 21800, 21900, 22000, 22100 ).round(4).should == 0.1889
     end
 
     it 'does other long ones' do
       fi.irr( -989.12, 37.25, 37.25, 37.25, 37.25, 37.25, 37.25, 37.25, 37.25, 37.25, 37.25, 37.25, 37.25, 37.25, 1037.25, ).round(4).should == 0.0383
+    end
+
+    it 'a stock example' do
+      fi.irr(-98198.00, 11893.00, 25571.00, 50319.00, 39965.00).round(4).should == 0.0954
+    end
+
+    it 'does another example' do
+      fi.irr(-85768.00, 11673.00, 25611.00, 54064.00, 38769.00 ).round(4).should == 0.1570
+    end
+
+    it 'another negative example' do
+      fi.irr(-85061.00,  10782.00, 25564.00, 52392.00, 39036.00 ).round(4).should == 0.1520
     end
   end
 end
