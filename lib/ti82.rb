@@ -1,35 +1,6 @@
 require "ti82/version"
-require 'bigdecimal'
-require 'bigdecimal/newton'
-include Newton
+require 'finance'
 
-class Function
-  # borrowed this function from https://github.com/wkranec/finance
-  include Ti82
-  values = {
-    eps: "1.0e-16",
-    one: "1.0",
-    two: "2.0",
-    ten: "10.0",
-    zero: "0.0"
-    }
-
-  values.each do |key, value|
-    define_method key do
-      BigDecimal.new value
-    end
-  end
-
-  def initialize(transactions, function)
-    @transactions = transactions
-    @function = function
-  end
-
-  def values(x)
-    value = send(@function, x[0], *@transactions)
-    [ BigDecimal.new(value.to_s) ]
-  end
-end
 
 module Ti82
 
@@ -61,30 +32,28 @@ module Ti82
   # net present value 
   # npv(0.08, cf0, cf1, cf2...)
   def npv(rate, *cash_flows)
-    total = 0
-    cash_flows.each_with_index do |cf, index|
-      total += cf.to_f / (1 + rate) ** index
-    end
-    total
+    cash_flows.npv(rate).to_f
   end
 
   # irr
   # irr(cf0, cf1, cf2...)
   def irr(*cash_flows)
-    positives, negatives = cash_flows.partition{ |i| i >= 0 }
-    if positives.empty? || negatives.empty?
-      raise ArgumentError, "Calculation does not converge."
-    end
-    func = Function.new(cash_flows, :npv)
-    rate = 0
-    methods = [:one, :two, :ten, :eps, :zero]
-    methods.each do |method|
-      rate = [func.send(method)]
-      nlsolve(func, rate)
-      rate = rate[0].to_f
-      break if rate > 0
-    end
-    rate
+    # Make sure we have a valid sequence of cash flows.
+      positives, negatives = cash_flows.partition{ |i| i >= 0 }
+      if positives.empty? || negatives.empty?
+        raise ArgumentError, "Calculation does not converge."
+      end
+
+      func = Finance::Cashflow::Function.new(cash_flows, :npv)
+      rate = 0
+      methods = [:one, :two, :ten, :eps, :zero]
+      methods.each do |method|
+        rate = [func.send(method)]
+        nlsolve(func, rate)
+        rate = rate[0].to_f
+        break if rate > 0
+      end
+      rate
   end
 
   # Bond price = coupon / y x ( 1 - (1/ (1+y))^N) + face / (1 + y)^N

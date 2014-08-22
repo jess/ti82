@@ -43,6 +43,9 @@ describe Ti82 do
   end
 
   describe ".irr" do
+    it 'returns .12' do
+      fi.irr(-93109.0,11526.0,25970.0,53626.0,38964.0).round(3).should == 0.123
+    end
     it 'returns .0792' do
       fi.irr(-100000.0, 10000, 25000.0, 50000, 40000).round(4).should == 0.0792
     end
