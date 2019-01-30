@@ -94,6 +94,14 @@ module Ti82
     r.round(6)
   end
 
+  def brate(price, pmt, n, par)
+    flows = [price]
+    ( n - 1 ).times{|i| flows << pmt }
+    flows << par + pmt
+    p flows
+    irr(*flows)
+  end
+
   def fvrate(n, pmt, fv)
     r = 0.00001
     fv0 = 0
