@@ -96,9 +96,8 @@ module Ti82
 
   def brate(price, pmt, n, par)
     flows = [price]
-    ( n - 1 ).times{|i| flows << pmt }
+    ( n - 1 ).to_i.times{|i| flows << pmt }
     flows << par + pmt
-    p flows
     irr(*flows)
   end
 

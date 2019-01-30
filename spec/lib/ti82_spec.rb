@@ -63,7 +63,7 @@ describe Ti82 do
 
     it 'brate' do
       fi.irr( -989.12, 37.25, 37.25, 37.25, 1037.25, ).round(4).should == 0.0402
-      fi.brate( -989.12, 37.25, 4, 1000).round(4).should == 0.0402
+      fi.brate( -989.12, 37.25, 4.0, 1000).round(4).should == 0.0402
     end
 
     it 'a stock example' do
