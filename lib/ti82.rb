@@ -56,6 +56,82 @@ module Ti82
       rate
   end
 
+  def pvrate(n, pmt, pv)
+    r = 0.00001
+    fv0 = 0
+    last_high = 0
+    last_low = 0
+    lr = 0
+    nr = 0
+    tries = 0
+    pv = pv.round(2)
+    until fv0 == pv || tries > 100
+      fv0 = ( (pmt/r) * (1 - (1/ ((1+r))**n)) ).round(2)
+      tries += 1
+      if pv < fv0
+        if last_high == 0 && r < lr
+          last_high = lr
+        end
+        if last_low < r
+          last_low = r
+        end
+        if last_high == 0
+          nr = r * 2.0
+        else
+          nr = r + ((last_high - last_low) / 2.0)
+        end
+        lr = r
+        r = nr
+      else # high
+        nr = r - ((r - last_low)/2.0)
+        if r < last_high
+          last_high = r
+        end
+        lr = r
+        r = nr
+      end
+    end
+    r.round(6)
+  end
+
+  def fvrate(n, pmt, fv)
+    r = 0.00001
+    fv0 = 0
+    last_high = 0
+    last_low = 0
+    lr = 0
+    nr = 0
+    tries = 0
+    fv = fv.round(2)
+    until fv0 == fv || tries > 100
+      fv0 = ( (pmt/r) * ( (1+r)**n - 1 ) ).round(2)
+      tries +=
+      if fv0 < fv
+        if last_high == 0 && r < lr
+          last_high = lr
+        end
+        if last_low < r
+          last_low = r
+        end
+        if last_high == 0
+          nr = r * 2.0
+        else
+          nr = r + ((last_high - last_low) / 2.0)
+        end
+        lr = r
+        r = nr
+      else # high
+        nr = r - ((r - last_low)/2.0)
+        if r < last_high
+          last_high = r
+        end
+        lr = r
+        r = nr
+      end
+    end
+    r.round(4)
+  end
+
   # Bond price = coupon / y x ( 1 - (1/ (1+y))^N) + face / (1 + y)^N
   # first value / face value
   def solve_for_bond_price(*cash_flows)

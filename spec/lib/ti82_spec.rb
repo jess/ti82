@@ -73,4 +73,25 @@ describe Ti82 do
       fi.irr(-85061.00,  10782.00, 25564.00, 52392.00, 39036.00 ).round(4).should == 0.1520
     end
   end
+
+  describe ".fvrate & .pvrate" do
+    # 39 years
+    # 11,000 payment
+    # 3,000,000 FV
+    it 'should be 8.52%' do
+      r = fi.fvrate(39, 11_000, 3_000_000)
+      expect(r).to eq 0.0852
+    end
+
+    it 'should be %2.52' do
+      r = fi.pvrate(40, 4000, 100000)
+      expect(r).to eq 0.025244
+    end
+
+    it '' do
+      #$28,000 = (350/r) * (1 - (1/ (1+r))^120)
+      r = fi.pvrate(120, 350, 28000)
+      expect(r).to eq 0.007241
+    end
+  end
 end
