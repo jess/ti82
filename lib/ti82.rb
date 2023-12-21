@@ -44,6 +44,7 @@ module Ti82
         raise ArgumentError, "Calculation does not converge."
       end
 
+      BigDecimal.limit(100)
       func = Finance::Cashflow::Function.new(cash_flows, :npv)
       rate = 0
       methods = [:one, :two, :ten, :eps, :zero]
