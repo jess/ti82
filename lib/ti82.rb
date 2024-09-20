@@ -19,13 +19,29 @@ module Ti82
   end
 
   def pv(rate, number, payment, fv, type = 0)
-    if fv == 0
-      payment * ( (1 - (1 / (1 + rate)**number )) / rate ) * -1
+    # Adjust for beginning or end of period payments
+    payment = payment / (1 + rate) if type == 1
+
+    # Calculate the present value of annuity (payments)
+    pv_annuity = if rate != 0
+                   payment * (1 - (1 / (1 + rate)**number)) / rate
+                 else
+                   payment * number
+                 end
+
+    # Calculate the present value of future value
+    pv_future_value = fv / (1 + rate)**number
+
+    # Total present value: adding both annuity and future value
+    present_value = pv_annuity + pv_future_value
+
+    # Correcting the sign based on cash flow signs
+    if payment < 0 && fv >= 0
+      present_value.abs
+    elsif payment >= 0 && fv < 0
+      present_value.abs
     else
-      (
-        (fv) /  
-        ( ( 1 + rate)**number )
-      )
+      present_value
     end
   end
 
