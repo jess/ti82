@@ -37,7 +37,7 @@ module Ti82
 
   # irr
   # irr(cf0, cf1, cf2...)
-  def irr(*cash_flows)
+  def old_irr(*cash_flows)
     # Make sure we have a valid sequence of cash flows.
       positives, negatives = cash_flows.partition{ |i| i >= 0 }
       if positives.empty? || negatives.empty?
@@ -56,6 +56,81 @@ module Ti82
       end
       rate
   end
+
+  def irr(*cash_flows, guess: 0.1, tol: 1e-6, max_iter: 100)
+    # Validates that there are both positive and negative cash flows
+    positives, negatives = cash_flows.partition { |i| i >= 0 }
+    if positives.empty? || negatives.empty?
+      raise ArgumentError, "Calculation does not converge."
+    end
+
+    # Helper functions
+    npv = ->(rate) { cash_flows.each_with_index.sum { |cf, i| cf / (1 + rate)**i } }
+    npv_derivative = ->(rate) { cash_flows.each_with_index.sum { |cf, i| -i * cf / (1 + rate)**(i + 1) } }
+
+    # Quick check for small sequences where simple solution exists
+    if cash_flows.length == 2
+      return (cash_flows[1] / -cash_flows[0]) - 1
+    end
+
+    # Dynamic bracketing to find suitable initial bounds
+    a = -0.99 # lower bound (cannot be less than -1 for IRR)
+    b = 1.0   # upper bound
+
+    # Expand bounds dynamically to find initial bracket
+    max_iter.times do
+      npv_a = npv.call(a)
+      npv_b = npv.call(b)
+
+      if npv_a * npv_b < 0
+        break # Found initial bounds where root exists
+      end
+
+      # Expand the bounds if no root is found in the current range
+      a -= 0.5
+      b += 0.5
+    end
+
+    # If no valid bounds found
+    raise "Bisection did not find valid initial bounds" if npv.call(a) * npv.call(b) > 0
+
+    # Bisection method for initial bracketing
+    rate = nil
+    max_iter.times do
+      mid = (a + b) / 2.0
+      npv_mid = npv.call(mid)
+
+      if npv_mid.abs < tol # Check for convergence
+        rate = mid
+        break
+      end
+
+      if npv.call(a) * npv_mid < 0
+        b = mid
+      else
+        a = mid
+      end
+    end
+
+    raise "Bisection did not converge" unless rate
+
+    # Newton-Raphson for refinement
+    max_iter.times do
+      npv_value = npv.call(rate)
+      npv_deriv = npv_derivative.call(rate)
+
+      break if npv_deriv.abs < tol # Avoid division by zero or very small derivative
+
+      new_rate = rate - npv_value / npv_deriv
+
+      return new_rate.to_f if (new_rate - rate).abs < tol # Convergence check
+
+      rate = new_rate
+    end
+
+    raise "IRR did not converge"
+  end
+
 
   def pvrate(n, pmt, pv)
     r = 0.00001
